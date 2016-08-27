@@ -7,7 +7,21 @@ $(document).ready(function() {
   var pingCount = 0;
   var maxPings = 1;
   var morale =100;
-  var health = 100;
+  var health;
+  var score;
+  var gameOver = function(){
+    if(health.status<=0 || morale.status<=0){
+      score.x = Crafty.viewport.width/2
+      score.y = Crafty.viewport.height/2
+      score.z = 100;
+      maxPings = 1;
+      pingCount = 0;
+      score.textFont({size: '32px'})
+      Crafty.e("Delay").delay(function(){
+        Crafty.scene("main")
+      },2000)
+    }
+  }
   var initPings = function(num) {
     pingCount = num;
     for(var i=0;i<num;i++){
@@ -35,15 +49,50 @@ $(document).ready(function() {
 
     var kill = Crafty.e('KillButton');
     var player = Crafty.e('Player')
+    health = Crafty.e('Status').attr({x:25,y:115})
+    morale = Crafty.e('Status').attr({x:25,y:315})
+    score = Crafty.e('Score')
     initPings(1);
 })
-var score = Crafty.e("2D, DOM, Text")
-  .attr({x: Crafty.viewport.width - 300, y: Crafty.viewport.height - 50, w: 200, h:50, score:0})
-  .text("Score: "+this.score)
-  .css({color: "#fff"})
-  .bind('EnterFrame',function(){
-    this.text('Score: '+this.score)
-  })
+Crafty.c('Status',{
+  init: function(){
+    this.requires('2D, DOM, Color');
+    this.w = 15;
+    this.h = 100;
+    this.maxHeight = 100;
+    this.status=100;
+    this.color("#00e600");
+
+  },
+  events: {
+    "EnterFrame": function(){
+    }
+  }
+
+})
+
+Crafty.c('Score',{
+  init: function(){
+    this.requires("2D, DOM, Text, Color");
+    this.x = centerX*2-150;
+    this.y = 30;
+    this.score = 0;
+    this.scoreText = "Score: "+this.score
+    console.log(this.scoreText)
+    this.text(this.scoreText)
+    this.textColor('#00e600')
+    this.textFont({
+      size: '24px'
+    });
+  },
+  events:{
+    "EnterFrame": function(){
+      this.scoreText = this.score
+      console.log(this.scoreText)
+      this.text(this.scoreText)
+    }
+  }
+})
 
 Crafty.c("DiagonalLine", {
   init: function(){
@@ -65,17 +114,22 @@ Crafty.c("DiagonalLine", {
 Crafty.c("Player", {
   init: function(){
     this.requires('2D, Canvas,  DOM,Color, Collision, Solid')
-    this.x = centerX;
-    this.y = centerY;
-    this.w = 45;
-    this.h = 45;
+    this.x = centerX-37;
+    this.y = centerY-37;
+    this.w = 75;
+    this.h = 75;
     this.checkHits('Solid')
   },
 
   events: {
     "HitOn":function(hitData){
       for(var i=0;i<hitData.length;i++){
-        console.log(hitData[i].obj.iff)
+        if(!hitData[i].iff){
+          health.status-=5;
+          health.y+=5;
+          health.h= health.maxHeight*(health.status/100)
+          gameOver();
+        }
         hitData[i].obj.destroy();
         pingCount--;
         if (!pingCount) {
@@ -126,9 +180,17 @@ Crafty.c("KillButton",{
     },
     "MouseDown": function(e){
       if(selected){
+        pingCount--;
+        if (!pingCount) {
+          maxPings++;
+          initPings(maxPings);
+        }
         if(selected.iff){
-          morale -= 5;
+          morale.status-=20;
+          morale.y+=20;
+          morale.h= morale.maxHeight*(morale.status/100)
           selected.destroy();
+          gameOver();
         }
         else{
           score.score +=5;
@@ -147,13 +209,14 @@ Crafty.c("Ping",{
       this.h = 15;
 
       this.alpha = 0.0;
-      var angle = Crafty.math.randomInt(-Math.PI,Math.PI)
+      this.angle = Math.random()*Math.PI*2;
       this.origin('center');
-      this.x = centerX+(280*Math.sin(angle));
-      this.y = centerY+(280*Math.cos(angle));
+      this.x = centerX+(280*Math.cos(this.angle));
+      this.y = centerY+(280*Math.sin(this.angle));
       this.rx = this.x;
       this.ry = this.y;
       this.alphaTween;
+      this.css({'cursor':'pointer'});
       this.color('#00e600');
       this.moveToCentre();
       this.iff = Crafty.math.randomInt(0,1);
