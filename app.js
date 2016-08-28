@@ -1,7 +1,7 @@
 $(document).ready(function() {
-  Crafty.init(1280,720);
+  Crafty.init(1280,1024);
   var centerX = 640;
-  var centerY = 300;
+  var centerY = 320;
   var count = 100;
   var selected;
   var pingCount = 0;
@@ -16,12 +16,37 @@ $(document).ready(function() {
       score.z = 100;
       maxPings = 1;
       pingCount = 0;
+      selected = 0;
       score.textFont({size: '32px'})
       Crafty.e("Delay").delay(function(){
         Crafty.scene("main")
       },2000)
     }
   }
+
+  var wheels = [];
+  var selectMessage = function(){
+    var message;
+    var msg
+    if(!selected.iff){
+      msg = messagesE[Crafty.math.randomInt(1,messagesE.len()-1)];
+      message = encode(msg.msg);
+    }
+    else if(selected.iff){
+      msg = messagesF[Crafty.math.randomInt(1,messagesE.len()-1)];
+      message = encode(msg.msg);
+    }
+    var x = centerX-200;
+    var y = centerY+450;
+
+    for(var i=0; i<message.length;i++){
+      console.log(message[i])
+      wheels.push(Crafty.e('Wheel').attr({x: x, y:y,arr:message[i]}));
+      x+=75;
+    }
+  }
+
+
   var initPings = function(num) {
     pingCount = num;
     for(var i=0;i<num;i++){
@@ -49,14 +74,14 @@ $(document).ready(function() {
 
     var kill = Crafty.e('KillButton');
     var player = Crafty.e('Player')
-    health = Crafty.e('Status').attr({x:25,y:115})
-    morale = Crafty.e('Status').attr({x:25,y:315})
-    score = Crafty.e('Score')
+    health = Crafty.e('Status').attr({x:30,y:580})
+    morale = Crafty.e('Status').attr({x:80,y:580})
+    score = Crafty.e('Score');
     initPings(1);
 })
 Crafty.c('Status',{
   init: function(){
-    this.requires('2D, DOM, Color');
+    this.requires('2D, DOM, Color, Text');
     this.w = 15;
     this.h = 100;
     this.maxHeight = 100;
@@ -70,15 +95,47 @@ Crafty.c('Status',{
   }
 
 })
-
+Crafty.c('Wheel', {
+  init: function(){
+    this.requires('2D, DOM, Color, Mouse, Text');
+    this.color('#00e600');
+    this.index = 0;
+    this.w = 35;
+    this.h = 135;
+    this.arr = [];
+    this.textFont({
+      size: '32px',
+      color: 'black'
+    })
+    this.css({'cursor':'pointer', 'padding-top':'75'})
+  },
+  spin: function(){
+    if(this.index>=this.arr.length-1){
+      this.index=0;
+    }
+    else{
+      this.index++;
+    }
+    this.text(this.arr[this.index].toUpperCase())
+  },
+  events: {
+    "MouseDown":function(e){
+      this.spin();
+    },
+    "EnterFrame": function(){
+      this.text(this.arr[this.index].toUpperCase());
+    }
+  }
+})
 Crafty.c('Score',{
   init: function(){
     this.requires("2D, DOM, Text, Color");
     this.x = centerX*2-150;
     this.y = 30;
+    this.w = 200;
     this.score = 0;
-    this.scoreText = "Score: "+this.score
-    console.log(this.scoreText)
+    this.scoreText = "Score: "+this.score;
+
     this.text(this.scoreText)
     this.textColor('#00e600')
     this.textFont({
@@ -87,9 +144,9 @@ Crafty.c('Score',{
   },
   events:{
     "EnterFrame": function(){
-      this.scoreText = this.score
-      console.log(this.scoreText)
-      this.text(this.scoreText)
+      this.scoreText = "Score: "+this.score;
+
+      this.text(this.scoreText);
     }
   }
 })
@@ -130,6 +187,9 @@ Crafty.c("Player", {
           health.h= health.maxHeight*(health.status/100)
           gameOver();
         }
+        else{
+          score.score+=5;
+        }
         hitData[i].obj.destroy();
         pingCount--;
         if (!pingCount) {
@@ -167,7 +227,7 @@ Crafty.c("KillButton",{
     this.x = centerX-this.w/2;
     this.y = 650;
     this.color('#00e600');
-    this.text("Kill");
+    this.text("KEEL");
     this.textFont({
       size: '32px',
       color: 'black'
@@ -190,11 +250,13 @@ Crafty.c("KillButton",{
           morale.y+=20;
           morale.h= morale.maxHeight*(morale.status/100)
           selected.destroy();
+          selected = 0;
           gameOver();
         }
-        else{
+        else if(!selected.iff){
           score.score +=5;
           selected.destroy();
+          selected = 0;
         }
       }
     }
@@ -249,6 +311,10 @@ Crafty.c("Ping",{
           selected.tween(selected.alphaTween,1000);
         }
         selected = this;
+        for( var i =0;i<wheels.length;i++){
+          wheels[i].destroy();
+        }
+        selectMessage()
         this.cancelTween(this.alphaTween);
         this.alpha = 0.7;
 
