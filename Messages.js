@@ -62,6 +62,6 @@ var messagesF = {
   }, 2:{
     msg: 'Supplies'
   }, 3:{
-    msg: 'Country'
+    msg: 'Traitor'
   }
 }
