@@ -35,26 +35,26 @@ $(document).ready(function() {
   }
 
   var wheels = [];
-  var selectMessage = function(){
-    var message;
-    var msg
-    if(!selected.iff){
-      msg = messagesE[Crafty.math.randomInt(1,messagesE.len()-1)];
-      message = encode(msg.msg);
-    }
-    else if(selected.iff){
-      msg = messagesF[Crafty.math.randomInt(1,messagesE.len()-1)];
-      message = encode(msg.msg);
-    }
-    var x = centerX-200;
-    var y = centerY+450;
-
-    for(var i=0; i<message.length;i++){
-
-      wheels.push(Crafty.e('Wheel').attr({x: x, y:y,arr:message[i]}));
-      x+=75;
-    }
-  }
+  // var selectMessage = function(){
+  //   var message;
+  //   var msg
+  //   if(!selected.iff){
+  //     msg = messagesE[Crafty.math.randomInt(1,messagesE.len()-1)];
+  //     message = encode(msg.msg);
+  //   }
+  //   else if(selected.iff){
+  //     msg = messagesF[Crafty.math.randomInt(1,messagesE.len()-1)];
+  //     message = encode(msg.msg);
+  //   }
+  //   var x = centerX-200;
+  //   var y = centerY+450;
+  //
+  //   for(var i=0; i<message.length;i++){
+  //
+  //     wheels.push(Crafty.e('Wheel').attr({x: x, y:y,arr:message[i]}));
+  //     x+=75;
+  //   }
+  // }
 
 
   var initPings = function(num) {
@@ -454,7 +454,7 @@ Crafty.c("Ping",{
         for( var i =0;i<wheels.length;i++){
           wheels[i].destroy();
         }
-        selectMessage()
+
         this.cancelTween(this.alphaTween);
         this.alpha = 0.7;
 
