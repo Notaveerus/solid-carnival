@@ -1,5 +1,5 @@
 $(document).ready(function() {
-  Crafty.init(1280,1024);
+  Crafty.init(1440,1024);
   var centerX = 640;
   var centerY = 320;
   var count = 100;
@@ -9,6 +9,14 @@ $(document).ready(function() {
   var morale =100;
   var health;
   var score;
+  Crafty.audio.add({
+      blip: ['blip.wav'],
+      explode:['explode.wav'],
+      friendly:['friendly.wav'],
+      backing:['backing track.wav']
+
+  });
+  //Crafty.audio.play('backing', -1, 0.3)
   var gameOver = function(){
     if(health.status<=0 || morale.status<=0){
       score.x = Crafty.viewport.width/2
@@ -251,12 +259,14 @@ Crafty.c("KillButton",{
           morale.h= morale.maxHeight*(morale.status/100)
           selected.destroy();
           selected = 0;
+          Crafty.audio.play('friendly')
           gameOver();
         }
         else if(!selected.iff){
           score.score +=5;
           selected.destroy();
           selected = 0;
+          Crafty.audio.play('explode')
         }
       }
     }
@@ -286,7 +296,7 @@ Crafty.c("Ping",{
 
           this.x = this.rx;
           this.y = this.ry;
-
+          Crafty.audio.play('blip', 1,0.5)
           if(this != selected){
             this.alpha = 1.0;
             this.alphaTween = {alpha: 0.0};
